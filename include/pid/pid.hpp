@@ -36,35 +36,38 @@
 #ifndef PID_H
 #define PID_H
 
-#include "ros/ros.h"
-#include <dynamic_reconfigure/server.h>
+#include "rclcpp/rclcpp.hpp"
+// #include <dynamic_reconfigure/server.h>
 #include <iostream>
-#include <pid/PidConfig.h>
-#include <ros/time.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/Float64MultiArray.h>
+// #include <pid/PidConfig.h>
+
+#include "std_msgs/msg/string.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include <stdio.h>
 #include <string>
 
 namespace pid_ns
 {
-class PidObject
+class PidObject : public rclcpp::Node
 {
 public:
-  PidObject();
+  PidObject(const std::string& name="pid_node");
+  ~PidObject();
 
   // Primary output variable
   double control_effort_ = 0;        // output of pid controller
+  rclcpp::Duration delta_t_;
 
 private:
   void doCalcs();
   void getParams(double in, double& value, double& scale);
-  void pidEnableCallback(const std_msgs::Bool& pid_enable_msg);
-  void plantStateCallback(const std_msgs::Float64& state_msg);
+  void pidEnableCallback(const std_msgs::msg::Bool::SharedPtr pid_enable_msg);
+  void plantStateCallback(const std_msgs::msg::Float64::SharedPtr state_msg);
   void printParameters();
-  void reconfigureCallback(pid::PidConfig& config, uint32_t level);
-  void setpointCallback(const std_msgs::Float64& setpoint_msg);
+  // void reconfigureCallback(pid::PidConfig& config, uint32_t level); // still in ros1! 
+  void setpointCallback(const std_msgs::msg::Float64::SharedPtr setpoint_msg);
   bool validateParameters();
 
   // Primary PID controller input variables
@@ -73,9 +76,9 @@ private:
   bool new_state_or_setpt_ = false;  // Indicate that fresh calculations need to be run
   double setpoint_ = 0;              // desired output of plant
 
-  ros::Time prev_time_;
-  ros::Time last_setpoint_msg_time_;
-  ros::Duration delta_t_;
+  rclcpp::Time prev_time_;
+  rclcpp::Time last_setpoint_msg_time_;
+  
   bool first_reconfig_ = true;
 
   double error_integral_ = 0;
@@ -114,15 +117,22 @@ private:
   double windup_limit_ = 1000;
 
   // Initialize filter data with zeros
-  std::vector<double> error_, filtered_error_, error_deriv_, filtered_error_deriv_;
+  std::vector<double> error_ = std::vector<double> (3, 0);
+  std::vector<double> filtered_error_ = std::vector<double>  (3, 0);
+  std::vector<double> error_deriv_ = std::vector<double> (3, 0);
+  std::vector<double> filtered_error_deriv_ = std::vector<double>  (3, 0);
 
   // Topic and node names and message objects
-  ros::Publisher control_effort_pub_;
-  ros::Publisher pid_debug_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr control_effort_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pid_debug_pub_;
+
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr plant_sub_;
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr setpoint_sub_;
+  rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr pid_enabled_sub_;
 
   std::string topic_from_controller_, topic_from_plant_, setpoint_topic_, pid_enable_topic_;
   std::string pid_debug_pub_name_;
-  std_msgs::Float64 control_msg_, state_msg_;
+  std_msgs::msg::Float64 control_msg_, state_msg_;
 
   // Diagnostic objects
   double min_loop_frequency_ = 1, max_loop_frequency_ = 1000;

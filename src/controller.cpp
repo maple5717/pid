@@ -37,13 +37,18 @@
 // feedback to
 // stabilize it.
 
-#include <pid/pid.h>
+#include "rclcpp/rclcpp.hpp"
+#include <pid/pid.hpp>
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "controller");
+  // ros::init(argc, argv, "controller");
 
-  pid_ns::PidObject my_pid;
+  // pid_ns::PidObject my_pid;
+
+  rclcpp::init(argc, argv);
+  rclcpp::spin(std::make_shared<pid_ns::PidObject>());
+  rclcpp::shutdown();
 
   return 0;
 }

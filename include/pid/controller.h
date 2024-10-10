@@ -36,7 +36,7 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-namespace pid_ns
+namespace controller_ns
 {
 class PidObject
 {

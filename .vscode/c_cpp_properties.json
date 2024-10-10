@@ -1,0 +1,31 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/clearlab/wrp_workspace/install/slam_toolbox/include/**",
+        "/home/clearlab/wrp_workspace/install/realsense2_camera/include/**",
+        "/home/clearlab/wrp_workspace/install/realsense2_camera_msgs/include/**",
+        "/home/clearlab/wrp_workspace/install/pointcloud_to_laserscan/include/**",
+        "/home/clearlab/wrp_workspace/install/depthimage_to_laserscan/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/clearlab/wrp_workspace/src/peripheral/realsense-ros/realsense2_camera/include/**",
+        "/home/clearlab/wrp_workspace/src/slam/ORB-SLAM3-STEREO-FIXED/include/**",
+        "/home/clearlab/wrp_workspace/src/slam/depthimage_to_laserscan/include/**",
+        "/home/clearlab/wrp_workspace/src/slam/orbslam3_ros2/include/**",
+        "/home/clearlab/wrp_workspace/src/slam/pid/include/**",
+        "/home/clearlab/wrp_workspace/src/slam/pointcloud_to_laserscan/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

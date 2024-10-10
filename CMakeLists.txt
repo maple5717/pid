@@ -1,57 +1,58 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(pid)
 
-add_compile_options(-std=c++11)
+# Specify C++11 standard
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  dynamic_reconfigure
-)
+# Find ament and other required packages
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+# find_package(dynamic_reconfigure REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 
-generate_dynamic_reconfigure_options(
-    cfg/Pid.cfg
-)
+# # Add dynamic reconfigure configuration
+# find_package(dynamic_reconfigure REQUIRED)
+# generate_dynamic_reconfigure_options(
+#     cfg/Pid.cfg
+# )
 
-catkin_package(
-  INCLUDE_DIRS include
-   CATKIN_DEPENDS roscpp std_msgs message_runtime dynamic_reconfigure
-)
+# Include directories
+include_directories(include)
 
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake
-)
+# Create executables
+# add_executable(controller src/controller.cpp src/pid.cpp)
+add_executable(controller src/testaaaa.cpp)
+# add_executable(plant_sim src/plant_sim.cpp)
+# add_executable(setpoint_node src/setpoint_node.cpp)
+# add_executable(sim_time src/sim_time.cpp)
+# add_executable(autotune src/autotune.cpp)
 
-add_executable(controller src/controller.cpp src/pid.cpp)
-add_executable(plant_sim src/plant_sim.cpp)
-add_executable(setpoint_node src/setpoint_node.cpp)
-add_executable(sim_time src/sim_time.cpp)
-add_executable(autotune src/autotune.cpp)
+# Link libraries
+ament_target_dependencies(controller rclcpp std_msgs Boost)
+# ament_target_dependencies(plant_sim rclcpp std_msgs dynamic_reconfigure Boost)
+# ament_target_dependencies(setpoint_node rclcpp std_msgs dynamic_reconfigure Boost)
+# ament_target_dependencies(sim_time rclcpp std_msgs dynamic_reconfigure Boost)
+# ament_target_dependencies(autotune rclcpp std_msgs dynamic_reconfigure Boost)
 
-add_dependencies(controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(plant_sim ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(setpoint_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(sim_time ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(autotune ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(controller ${catkin_LIBRARIES})
-target_link_libraries(plant_sim ${catkin_LIBRARIES})
-target_link_libraries(setpoint_node ${catkin_LIBRARIES})
-target_link_libraries(sim_time ${catkin_LIBRARIES})
-target_link_libraries(autotune ${catkin_LIBRARIES})
-
-install(TARGETS controller plant_sim setpoint_node sim_time autotune
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# Install targets
+install(TARGETS controller # plant_sim setpoint_node sim_time autotune
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN ".svn" EXCLUDE
+  DESTINATION include/${PROJECT_NAME}
+  FILES_MATCHING PATTERN "*.hpp"
 )
 
 install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  DESTINATION share/${PROJECT_NAME}/launch
 )
+
+install(DIRECTORY scripts/
+  DESTINATION share/${PROJECT_NAME}/scripts
+)
+
+# Export package for ament
+ament_package()
