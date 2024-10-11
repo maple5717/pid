@@ -115,7 +115,7 @@ if (!plant_sub_ || !setpoint_sub_ || !pid_enabled_sub_)
 void PidObject::setpointCallback(const std_msgs::msg::Float64::SharedPtr setpoint_msg)
 {
   setpoint_ = setpoint_msg->data;
-  last_setpoint_msg_time_ = this->now();
+  last_setpoint_msg_time_ = this->now().seconds();
   new_state_or_setpt_ = true;
 }
 
@@ -250,11 +250,11 @@ void PidObject::doCalcs()
     }
 
     // calculate delta_t
-    if (!prev_time_.seconds() == 0)  // Not first time through the program
+    if (!prev_time_ == 0)  // Not first time through the program
     {
-      delta_t_ = this->now() - prev_time_;
-      prev_time_ = this->now();
-      if (0 == delta_t_.seconds())
+      delta_t_ = this->now().seconds() - prev_time_;
+      prev_time_ = this->now().seconds();
+      if (0 == delta_t_)
       {
         RCLCPP_ERROR(this->get_logger(), "delta_t is 0, skipping this loop. Possible overloaded cpu "
                   "at time: %f",
@@ -265,12 +265,12 @@ void PidObject::doCalcs()
     else
     {
       RCLCPP_INFO(this->get_logger(), "prev_time is 0, doing nothing");
-      prev_time_ = this->now();
+      prev_time_ = this->now().seconds();
       return;
     }
 
     // integrate the error
-    error_integral_ += error_.at(0) * delta_t_.seconds();
+    error_integral_ += error_.at(0) * delta_t_;
 
     // Apply windup limit to limit the size of the integral term
     if (error_integral_ > fabsf(windup_limit_))
@@ -285,7 +285,7 @@ void PidObject::doCalcs()
     if (cutoff_frequency_ != -1)
     {
       // Check if tan(_) is really small, could cause c = NaN
-      tan_filt_ = tan((cutoff_frequency_ * 6.2832) * delta_t_.seconds() / 2);
+      tan_filt_ = tan((cutoff_frequency_ * 6.2832) * delta_t_ / 2);
 
       // Avoid tan(0) ==> NaN
       if ((tan_filt_ <= 0.) && (tan_filt_ > -0.01))
@@ -306,7 +306,7 @@ void PidObject::doCalcs()
     // First the raw, unfiltered data:
     error_deriv_.at(2) = error_deriv_.at(1);
     error_deriv_.at(1) = error_deriv_.at(0);
-    error_deriv_.at(0) = (error_.at(0) - error_.at(1)) / delta_t_.seconds();
+    error_deriv_.at(0) = (error_.at(0) - error_.at(1)) / delta_t_;
 
     filtered_error_deriv_.at(2) = filtered_error_deriv_.at(1);
     filtered_error_deriv_.at(1) = filtered_error_deriv_.at(0);
@@ -330,7 +330,7 @@ void PidObject::doCalcs()
 
     // Publish the stabilizing control effort if the controller is enabled
     if (pid_enabled_ && (setpoint_timeout_ == -1 || 
-                         (this->now() - last_setpoint_msg_time_).seconds() <= setpoint_timeout_))
+                         (this->now().seconds() - last_setpoint_msg_time_) <= setpoint_timeout_))
     {
       control_msg_.data = control_effort_;
       control_effort_pub_->publish(control_msg_);
@@ -340,7 +340,7 @@ void PidObject::doCalcs()
       pidDebugMsg.data = pid_debug_vect;
       pid_debug_pub_->publish(pidDebugMsg);
     }
-    else if (setpoint_timeout_ > 0 && (this->now() - last_setpoint_msg_time_).seconds() > setpoint_timeout_)
+    else if (setpoint_timeout_ > 0 && (this->now().seconds() - last_setpoint_msg_time_) > setpoint_timeout_)
     {
       RCLCPP_WARN_ONCE(this->get_logger(), "Setpoint message timed out, will stop publising control_effort_messages");
       error_integral_ = 0.0;

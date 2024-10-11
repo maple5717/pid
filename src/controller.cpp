@@ -44,10 +44,11 @@ int main(int argc, char** argv)
 {
   // ros::init(argc, argv, "controller");
 
-  // pid_ns::PidObject my_pid;
+  // pid_ns::PidObject my_pid = pid_ns::PidObject("pid1");
 
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<pid_ns::PidObject>());
+  rclcpp::spin(std::make_shared<pid_ns::PidObject>("pid_controller"));
+  // rclcpp::spin(std::make_shared<pid_ns::PidObject>(my_pid));
   rclcpp::shutdown();
 
   return 0;

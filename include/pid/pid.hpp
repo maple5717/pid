@@ -54,13 +54,13 @@ class PidObject : public rclcpp::Node
 {
 public:
   PidObject(const std::string& name="pid_node");
-  ~PidObject();
+  // ~PidObject();
 
   // Primary output variable
   double control_effort_ = 0;        // output of pid controller
-  rclcpp::Duration delta_t_;
 
 private:
+  double delta_t_;
   void doCalcs();
   void getParams(double in, double& value, double& scale);
   void pidEnableCallback(const std_msgs::msg::Bool::SharedPtr pid_enable_msg);
@@ -76,8 +76,8 @@ private:
   bool new_state_or_setpt_ = false;  // Indicate that fresh calculations need to be run
   double setpoint_ = 0;              // desired output of plant
 
-  rclcpp::Time prev_time_;
-  rclcpp::Time last_setpoint_msg_time_;
+  double prev_time_;
+  double last_setpoint_msg_time_;
   
   bool first_reconfig_ = true;
 

@@ -22,8 +22,7 @@ find_package(Boost REQUIRED COMPONENTS system)
 include_directories(include)
 
 # Create executables
-# add_executable(controller src/controller.cpp src/pid.cpp)
-add_executable(controller src/testaaaa.cpp)
+add_executable(controller src/controller.cpp src/pid.cpp)
 # add_executable(plant_sim src/plant_sim.cpp)
 # add_executable(setpoint_node src/setpoint_node.cpp)
 # add_executable(sim_time src/sim_time.cpp)
