@@ -40,18 +40,23 @@ install(TARGETS controller # plant_sim setpoint_node sim_time autotune
   DESTINATION lib/${PROJECT_NAME}
 )
 
+install(PROGRAMS pid/wheelchair_pid_helper.py # plant_sim setpoint_node sim_time autotune
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING PATTERN "*.hpp"
 )
 
-install(DIRECTORY launch/
-  DESTINATION share/${PROJECT_NAME}/launch
+install(DIRECTORY launch pid
+  DESTINATION share/${PROJECT_NAME}
 )
 
-install(DIRECTORY scripts/
-  DESTINATION share/${PROJECT_NAME}/scripts
-)
+# install(DIRECTORY scripts/
+#   DESTINATION share/${PROJECT_NAME}
+# )
 
 # Export package for ament
 ament_package()

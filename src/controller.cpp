@@ -42,12 +42,18 @@
 
 int main(int argc, char** argv)
 {
-  // ros::init(argc, argv, "controller");
-
-  // pid_ns::PidObject my_pid = pid_ns::PidObject("pid1");
 
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<pid_ns::PidObject>("pid_controller"));
+
+  auto my_pid_object = std::make_shared<pid_ns::PidObject>();
+
+  // auto logger = rclcpp::get_logger("my_logger");
+  my_pid_object->waitFirstMsg();
+  RCLCPP_INFO(rclcpp::get_logger("my_logger"), "First Msg received, start computing PID");
+
+  // Spin the node to process callbacks
+  rclcpp::spin(my_pid_object);
+
   // rclcpp::spin(std::make_shared<pid_ns::PidObject>(my_pid));
   rclcpp::shutdown();
 

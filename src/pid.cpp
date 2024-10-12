@@ -7,8 +7,8 @@ using namespace pid_ns;
 using std::placeholders::_1;
 
 
-PidObject::PidObject(const std::string& name) 
-: Node(name)
+PidObject::PidObject() 
+: Node("pid_obj")
 {
   this->declare_parameter<double>("Kp", 1.0);
   this->declare_parameter<double>("Ki", 0.0);
@@ -84,8 +84,24 @@ if (!plant_sub_ || !setpoint_sub_ || !pid_enabled_sub_)
   // dynamic_reconfigure::Server<pid::PidConfig> config_server;
   // dynamic_reconfigure::Server<pid::PidConfig>::CallbackType f;
   // f = boost::bind(&PidObject::reconfigureCallback, this, _1, _2);
-  // config_server.setCallback(f);
+  // config_server.setCallback(f);rom
 
+
+
+
+  // // Respond to inputs until shut down
+  // while (rclcpp::ok())
+  // {
+  //   doCalcs();
+  //   ros::spinOnce();
+
+  //   // Add a small sleep to avoid 100% CPU usage
+  //   ros::Duration(0.001).sleep();
+  // }
+};
+
+void PidObject::waitFirstMsg()
+{
   // Wait for first messages
   std_msgs::msg::Float64 out = std_msgs::msg::Float64();
   while (rclcpp::ok() && !rclcpp::wait_for_message(out, this->shared_from_this(), setpoint_topic_, std::chrono::seconds(10)))
@@ -98,19 +114,7 @@ if (!plant_sub_ || !setpoint_sub_ || !pid_enabled_sub_)
   {
       RCLCPP_WARN(this->get_logger(), "Waiting for first state message from the plant.");
   }
-
-
-  // // Respond to inputs until shut down
-  // while (rclcpp::ok())
-  // {
-  //   doCalcs();
-  //   ros::spinOnce();
-
-  //   // Add a small sleep to avoid 100% CPU usage
-  //   ros::Duration(0.001).sleep();
-  // }
-
-};
+}
 
 void PidObject::setpointCallback(const std_msgs::msg::Float64::SharedPtr setpoint_msg)
 {
@@ -124,6 +128,8 @@ void PidObject::plantStateCallback(const std_msgs::msg::Float64::SharedPtr state
   plant_state_ = state_msg->data;
 
   new_state_or_setpt_ = true;
+
+  doCalcs();
 }
 
 void PidObject::pidEnableCallback(const std_msgs::msg::Bool::SharedPtr pid_enable_msg)
@@ -206,6 +212,17 @@ void PidObject::printParameters()
 
 void PidObject::doCalcs()
 {
+  // std::cout << "lolol" << 123 << std::endl; // for test only!!!
+  if (!pid_enabled_)
+    {
+      // TODO: set integral to 0 once disabled 
+      error_integral_ = 0;
+      control_msg_.data = 0;
+      control_effort_pub_->publish(control_msg_);
+      return;
+      }
+
+  
   // Do fresh calcs if knowledge of the system has changed.
   if (new_state_or_setpt_)
   {
@@ -298,9 +315,9 @@ void PidObject::doCalcs()
 
     filtered_error_.at(2) = filtered_error_.at(1);
     filtered_error_.at(1) = filtered_error_.at(0);
-    filtered_error_.at(0) = (1 / (1 + c_ * c_ + 1.414 * c_)) * (error_.at(2) + 2 * error_.at(1) + error_.at(0) -
-                                                                (c_ * c_ - 1.414 * c_ + 1) * filtered_error_.at(2) -
-                                                                (-2 * c_ * c_ + 2) * filtered_error_.at(1));
+    filtered_error_.at(0) = error_.at(0); //(1 / (1 + c_ * c_ + 1.414 * c_)) * (error_.at(2) + 2 * error_.at(1) + error_.at(0) -
+                                                                // (c_ * c_ - 1.414 * c_ + 1) * filtered_error_.at(2) -
+                                                                // (-2 * c_ * c_ + 2) * filtered_error_.at(1));
 
     // Take derivative of error
     // First the raw, unfiltered data:

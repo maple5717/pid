@@ -12,6 +12,7 @@ from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input  as inp
 
 class PID_HELPER():
     def __init__(self):
+        print("lolol")
         self.GOAL = 80 # in terms of desired pressure 230, 80
         self.TOLERANCE = 10
         self.TOLERANCE_QTY = 10

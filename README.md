@@ -1,5 +1,11 @@
 # pid
-PID controller for tactile
+PID controller for ROS2
+
+Modification: 
+1. disable all the nodes except for ```controller.cpp``` and ```pid.cpp```
+2. PID will output only when plant feedback is received (since timer doesn't work) 
+3. Disabled error filtering (but still keeps derivative filtering)
+
 ### setup BioTac
 rosrun biotac_sensors biotac_pub 
 ### setup calibration

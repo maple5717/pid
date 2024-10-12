@@ -53,7 +53,8 @@ namespace pid_ns
 class PidObject : public rclcpp::Node
 {
 public:
-  PidObject(const std::string& name="pid_node");
+  PidObject();
+  void waitFirstMsg();
   // ~PidObject();
 
   // Primary output variable
