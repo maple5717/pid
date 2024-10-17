@@ -303,7 +303,7 @@ void PidObject::doCalcs()
     {
       // Check if tan(_) is really small, could cause c = NaN
       tan_filt_ = tan((cutoff_frequency_ * 6.2832) * delta_t_ / 2);
-
+      // std::cout << tan_filt_ << " " << delta_t_ << std::endl; 
       // Avoid tan(0) ==> NaN
       if ((tan_filt_ <= 0.) && (tan_filt_ > -0.01))
         tan_filt_ = -0.01;
@@ -313,9 +313,11 @@ void PidObject::doCalcs()
       c_ = 1 / tan_filt_;
     }
 
+    // replaced the butterworth filter with a tentative first-order filter
+    float alpha = 0.1;
     filtered_error_.at(2) = filtered_error_.at(1);
     filtered_error_.at(1) = filtered_error_.at(0);
-    filtered_error_.at(0) = error_.at(0); //(1 / (1 + c_ * c_ + 1.414 * c_)) * (error_.at(2) + 2 * error_.at(1) + error_.at(0) -
+    filtered_error_.at(0) = alpha * filtered_error_.at(1) + (1-alpha) * error_.at(0); //error_.at(0); //(1 / (1 + c_ * c_ + 1.414 * c_)) * (error_.at(2) + 2 * error_.at(1) + error_.at(0) -
                                                                 // (c_ * c_ - 1.414 * c_ + 1) * filtered_error_.at(2) -
                                                                 // (-2 * c_ * c_ + 2) * filtered_error_.at(1));
 
@@ -328,17 +330,18 @@ void PidObject::doCalcs()
     filtered_error_deriv_.at(2) = filtered_error_deriv_.at(1);
     filtered_error_deriv_.at(1) = filtered_error_deriv_.at(0);
 
-    filtered_error_deriv_.at(0) =
-        (1 / (1 + c_ * c_ + 1.414 * c_)) *
-        (error_deriv_.at(2) + 2 * error_deriv_.at(1) + error_deriv_.at(0) -
-         (c_ * c_ - 1.414 * c_ + 1) * filtered_error_deriv_.at(2) - (-2 * c_ * c_ + 2) * filtered_error_deriv_.at(1));
+    filtered_error_deriv_.at(0) = error_deriv_.at(0);
+    // (1 / (1 + c_ * c_ + 1.414 * c_)) *
+    //     (error_deriv_.at(2) + 2 * error_deriv_.at(1) + error_deriv_.at(0) -
+    //      (c_ * c_ - 1.414 * c_ + 1) * filtered_error_deriv_.at(2) - (-2 * c_ * c_ + 2) * filtered_error_deriv_.at(1));
 
     // calculate the control effort
     proportional_ = Kp_ * filtered_error_.at(0);
     integral_ = Ki_ * error_integral_;
     derivative_ = Kd_ * filtered_error_deriv_.at(0);
     control_effort_ = proportional_ + integral_ + derivative_;
-
+    // std::cout << "filtered: " << filtered_error_deriv_.at(0) << std::endl; 
+    // std::cout << "current derivative: " << derivative_ << std::endl; 
     // Apply saturation limits
     if (control_effort_ > upper_limit_)
       control_effort_ = upper_limit_;
