@@ -4,15 +4,15 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package='pid',               # Name of your package
-            executable='controller',     # Name of your executable
-            name='angular_velocity_control',     # Node name
-            output='screen',             # Output to screen
+            package='pid',               
+            executable='controller',     
+            name='angular_velocity_control',     
+            output='screen',             
             parameters=[
                 {'Kp': 2.0}, # 0.8
                 {'Ki': 20.0}, # 10.0
                 {'Kd': 0.000}, # 0.0
-                {'windup_limit': 0.025}, # 0.05 # TODO: see why y!=0 for cmd_vel_nav
+                {'windup_limit': 0.025}, # 0.05 
                 {'upper_limit': 1.20-0.4},
                 {'lower_limit': -1.20+0.4},
                 {'cutoff_frequency': 20.0},
@@ -56,9 +56,9 @@ def generate_launch_description():
         ),
 
          Node(
-            package='pid',               # Name of your package
-            executable='wheelchair_pid_helper.py',     # Name of your executable
-            name='pid_helper',     # Node name
+            package='pid',               
+            executable='wheelchair_pid_helper.py',     
+            name='pid_helper',     
             output='screen',
          )
     ])
