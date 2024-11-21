@@ -8,12 +8,8 @@ from nav_msgs.msg import Odometry
 # from math import abs
 
 # Note: Currently PID is only used for rotation control!!! 
-# TODO (done): if expected_vel not received in a long time, set output 0
-# TODO: 1. determinet speed range 2. tune PID controller accordingly 3. check controller 
-# TODO: if the expected output is 0, disable the pid controller
+# TODO: 1. determine speed range 2. tune PID controller accordingly 3. check controller 
 # TODO: stop the robot once vio is lost
-# TODO: tune the filter to eliminate noise in D term so it can be used
-# WHy robot stops after the target vel reached immediately? ans: Filter for the P component! 
 class VelocityControllerNode(Node):
     def __init__(self):
         super().__init__('velocity_controller')
@@ -66,20 +62,13 @@ class VelocityControllerNode(Node):
         if abs(linear_x) < self.lin_min_th and linear_x != 0:
             linear_x = self.lin_min_th * linear_x / abs(linear_x)
 
-        # ugly! ROBOT MOVES EVEN THERE IS NO CONTROL INPUT! 
-        # IF PREV IS NOT 0
-        a = 0.9 * 0
-        self.z_rot_expected = (1-a) * rotational_z + a * self.z_rot_expected_prev
-        self.x_lin_expected = (1-a) * linear_x + a * (self.x_lin_expected_prev)
-
-        self.z_rot_expected_prev = self.z_rot_expected
-        self.x_lin_expected_prev = self.x_lin_expected
+        # self.z_rot_expected_prev = self.z_rot_expected
+        # self.x_lin_expected_prev = self.x_lin_expected
 
         # Publish the velocities
         self.x_vel_publisher.publish(Float64(data=linear_x))
         self.z_vel_publisher.publish(Float64(data=rotational_z))
 
-        # self.get_logger().info(rotational_z)
         z_enable_msg = Bool()
         z_enable_msg.data = True if (abs(rotational_z) > self.rot_threshold) else False
         self.z_rot_enable_publisher.publish(z_enable_msg)
@@ -87,6 +76,9 @@ class VelocityControllerNode(Node):
         self.last_cmd_time = self.get_clock().now()
 
     def x_cmd_callback(self, msg: Float64):
+        '''
+            Currently, we do not use PID for linear speed control
+        '''
         # Update x_cmd from the received message
         self.x_lin_cmd = self.x_lin_expected # msg.data
 
@@ -108,9 +100,7 @@ class VelocityControllerNode(Node):
         # This code prevents the robot from breaking
         if self.z_rot_cmd * self.z_rot_expected <= 0 and self.z_rot_expected != 0:
             self.z_rot_cmd = 0.05 * self.z_rot_expected / abs(self.z_rot_expected)
-
-        # if abs(self.z_rot_expected) < 1e-5:
-        #     self.z_rot_cmd = 0.0
+        
             
         
 
@@ -135,6 +125,9 @@ class VelocityControllerNode(Node):
         self.cmd_vel_publisher.publish(cmd_vel_msg)
 
     def watchdog_callback(self):
+        '''
+            Set output to zero if no command is received in 0.2s
+        '''
         current_time = self.get_clock().now()
         elapsed_time = (current_time - self.last_cmd_time).nanoseconds * 1e-9  # Convert to seconds
 
@@ -148,6 +141,7 @@ class VelocityControllerNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = VelocityControllerNode()
+
     rclpy.spin(node)
     rclpy.shutdown()
     print("exit")
