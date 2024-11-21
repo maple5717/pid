@@ -3,6 +3,8 @@
 #include "rclcpp/wait_for_message.hpp"
 #include <chrono>
 
+// TODO: enable reconfiguration 
+
 using namespace pid_ns;
 using std::placeholders::_1;
 
@@ -327,9 +329,9 @@ void PidObject::doCalcs()
     error_deriv_.at(1) = error_deriv_.at(0);
     error_deriv_.at(0) = (error_.at(0) - error_.at(1)) / delta_t_;
 
+    // filter is disabled
     filtered_error_deriv_.at(2) = filtered_error_deriv_.at(1);
     filtered_error_deriv_.at(1) = filtered_error_deriv_.at(0);
-
     filtered_error_deriv_.at(0) = error_deriv_.at(0);
     // (1 / (1 + c_ * c_ + 1.414 * c_)) *
     //     (error_deriv_.at(2) + 2 * error_deriv_.at(1) + error_deriv_.at(0) -
@@ -340,8 +342,7 @@ void PidObject::doCalcs()
     integral_ = Ki_ * error_integral_;
     derivative_ = Kd_ * filtered_error_deriv_.at(0);
     control_effort_ = proportional_ + integral_ + derivative_;
-    // std::cout << "filtered: " << filtered_error_deriv_.at(0) << std::endl; 
-    // std::cout << "current derivative: " << derivative_ << std::endl; 
+
     // Apply saturation limits
     if (control_effort_ > upper_limit_)
       control_effort_ = upper_limit_;
